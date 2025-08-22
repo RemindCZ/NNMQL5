@@ -1,98 +1,111 @@
-NNMQL5 — Lehká DLL pro MLP v MQL5 (MetaTrader 5)
+NNMQL5 — Lightweight DLL for MLP in MQL5 (MetaTrader 5)
 
-Minimalistická C/C++ DLL s C ABI pro multi-layer perceptron (dense vrstvy) – dopředný průchod, backprop s MSE a SGD, He/Xavier inicializace, gradient clipping. Volatelná přímo z MQL5 (EA/indikátory). Bez magie, jen matika SŠ.
+A minimalist C/C++ DLL with a clean C ABI providing a multi-layer perceptron (dense layers) for MetaTrader 5 (MQL5).
+Supports forward pass, backpropagation with MSE loss and SGD, He/Xavier initialization, and gradient clipping.
+Callable directly from MQL5 scripts, EAs, or indicators.
 
-Upozornění: edukativní nástroj. Nejedná se o investiční doporučení.
+No magic, just straightforward math.
 
-Obsah
+Disclaimer: Educational tool only. This is not financial trading product.
 
-Vlastnosti
+Contents
 
-Požadavky
+Features
+
+Requirements
 
 Build (Visual Studio)
 
-Instalace do MetaTraderu
+Installation into MetaTrader
 
-C API (exporty)
+C API (exports)
 
-Aktivační funkce (kódy)
+Activation function codes
 
-Ukázka MQL5 importu
+Example MQL5 import
 
-Příklady použití v MQL5
+Example usage in MQL5
 
-Determinismus, thread-safety, výkon
+Determinism, thread safety, performance
 
-Limity a roadmapa
+Limitations and roadmap
 
-Ikona a metadata ve Windows
+Windows icon and metadata
 
-Licence
+License
 
-Autor a kontakt
+Author & contact
 
-Vlastnosti
+Features
 
-Dense vrstvy s volitelnou aktivací: SIGMOID, RELU, TANH, LINEAR, SYM_SIG.
+Dense layers with selectable activations: SIGMOID, RELU, TANH, LINEAR, SYM_SIG
 
-Inference (NN_Forward) a online trénink po jednom vzorku (NN_TrainOne).
+Inference (NN_Forward) and online training per sample (NN_TrainOne)
 
-Mini-batch wrappery: NN_ForwardBatch, NN_TrainBatch (sekvenční loop přes TrainOne).
+Mini-batch wrappers: NN_ForwardBatch, NN_TrainBatch (internally loops over samples)
 
-Správa více sítí přes integer handle (žádné globální singletony).
+Multiple networks managed via integer handles (no global singletons)
 
-Inicializace vah: He (pro ReLU) / Xavier-like (ostatní).
+Weight initialization: He (for ReLU) / Xavier-like (others)
 
-Gradient clipping (±5 per neuron).
+Gradient clipping (±5 per neuron)
 
-Přístup k vahám: NN_GetWeights / NN_SetWeights (ladění, migrace).
+Direct weight access: NN_GetWeights / NN_SetWeights (debugging, migration)
 
-C ABI, x64 (MSVC), vhodné pro MQL5 #import.
+Plain C ABI, x64 (MSVC), suitable for #import in MQL5
 
-Požadavky
+Requirements
 
 Windows 10/11 x64
 
 Visual Studio 2019/2022 (MSVC), /std:c++17
 
-MetaTrader 5 (pro použití z MQL5)
+MetaTrader 5 (for MQL5 integration)
 
 Build (Visual Studio)
 
-Doporučená konfigurace:
+Recommended configuration:
 
 Configuration: Release | x64
 
 C++: /std:c++17 /O2 /EHsc
 
-Runtime: /MD (sdílená CRT)
+Runtime: /MD (shared CRT)
 
-Vypnout propagaci výjimek přes C hranici (API vrací bool/int).
+Disable C++ exceptions across the C ABI boundary (API returns bool/int only).
 
-Složky (doporučení):
+Suggested folder structure:
 
 /src/dllmain.cpp
-/src/pch.h (volitelné)
-/res/NNMQL5.rc (ikonka, verze)
+/src/pch.h        (optional)
+/res/NNMQL5.rc    (icon, version info)
 /res/resource.h
-/build/ (out)
+/build/           (output)
 
-Instalace do MetaTraderu
+Installation into MetaTrader
 
-Zkompilovanou NNMQL5.dll zkopíruj do:
+Compile NNMQL5.dll.
+
+Copy it into your terminal’s:
 
 MQL5\Libraries\
 
 
-V EA/indikátoru použij #import "NNMQL5.dll" a deklarace funkcí (viz níže).
+In your EA/indicator use:
 
-Povol v MT5: Options → Expert Advisors → Allow DLL imports.
+#import "NNMQL5.dll"
+...
+#import
 
-C API (exporty)
+
+In MetaTrader: Options → Expert Advisors → Allow DLL imports.
+
+C API (exports)
 int   NN_Create(void);
 void  NN_Free(int h);
+
 bool  NN_AddDense(int h,int inSz,int outSz,int act);
+
 int   NN_InputSize(int h);
 int   NN_OutputSize(int h);
 
@@ -100,130 +113,133 @@ bool  NN_Forward(int h,const double* in,int in_len,double* out,int out_len);
 bool  NN_TrainOne(int h,const double* in,int in_len,
                   const double* tgt,int tgt_len,double lr,double* mse);
 
-// Batch (samples po řádcích, row-major)
+// Batch (samples stored row-major)
 bool  NN_ForwardBatch(int h,const double* in,int batch,int in_len,
                       double* out,int out_len);
 bool  NN_TrainBatch (int h,const double* in,int batch,int in_len,
                       const double* tgt,int tgt_len,double lr,double* mean_mse);
 
-// Váhy vrstvy i (0-based)
+// Weights of layer i (0-based)
 bool  NN_GetWeights(int h,int i,double* W,int Wlen,double* b,int blen);
 bool  NN_SetWeights(int h,int i,const double* W,int Wlen,const double* b,int blen);
 
-Konvence vstupů/výstupů
 
-NN_AddDense: rozměry musí navazovat: out(prev) == in(next).
+Conventions:
 
-NN_Forward/TrainOne: in_len == NN_InputSize(h), out_len/tgt_len == NN_OutputSize(h).
+NN_AddDense: layer dimensions must match (out(prev) == in(next)).
 
-Batch: in je [batch × in_len], out/tgt je [batch × out_len].
+NN_Forward/TrainOne: in_len == NN_InputSize(h), out_len == NN_OutputSize(h).
 
-Aktivační funkce (kódy)
-Kód	Aktivace	Poznámka
-0	SIGMOID	1/(1+e^-x)
-1	RELU	max(0,x) (He init)
+Batch arrays are [batch × length] row-major.
+
+Activation function codes
+Code	Activation	Formula
+0	SIGMOID	1 / (1 + e^-x)
+1	RELU	max(0, x) (He init)
 2	TANH	tanh(x)
-3	LINEAR	identita
-4	SYM_SIG	2σ(x)-1 ∈ (-1,1)
-Ukázka MQL5 importu
+3	LINEAR	identity
+4	SYM_SIG	2σ(x) − 1 ∈ (−1,1)
+Example MQL5 import
 #import "NNMQL5.dll"
 int  NN_Create();  void NN_Free(int h);
 bool NN_AddDense(int h,int inSz,int outSz,int act);
 bool NN_Forward(int h,const double &in[],int in_len,double &out[],int out_len);
-bool NN_TrainOne(int h,const double &in[],int in_len,const double &tgt[],int tgt_len,double lr,double &mse);
+bool NN_TrainOne(int h,const double &in[],int in_len,
+                 const double &tgt[],int tgt_len,double lr,double &mse);
 int  NN_InputSize(int h); int NN_OutputSize(int h);
-bool NN_ForwardBatch(int h,const double &in[],int batch,int in_len,double &out[],int out_len);
-bool NN_TrainBatch (int h,const double &in[],int batch,int in_len,const double &tgt[],int tgt_len,double lr,double &mean_mse);
+bool NN_ForwardBatch(int h,const double &in[],int batch,int in_len,
+                     double &out[],int out_len);
+bool NN_TrainBatch (int h,const double &in[],int batch,int in_len,
+                     const double &tgt[],int tgt_len,double lr,double &mean_mse);
 bool NN_GetWeights(int h,int i,double &W[],int Wlen,double &b[],int blen);
 bool NN_SetWeights(int h,int i,const double &W[],int Wlen,const double &b[],int blen);
 #import
 
-Příklady použití v MQL5
-1) Vytvoření sítě a inference
+Example usage in MQL5
+
+1) Create network + inference
+
 int h = NN_Create();
 NN_AddDense(h, 32, 64, 1);     // RELU
 NN_AddDense(h, 64,  1, 3);     // LINEAR
 
-double x[32];   // připrav vstup (normalizovaný)
+double x[32];   // normalized input
 double y[1];
-bool ok = NN_Forward(h, x, 32, y, 1);
+NN_Forward(h, x, 32, y, 1);
 
-2) Online trénink (per-sample)
-double mse=0.0, lr=0.01;
+
+2) Online training (per sample)
+
+double mse=0.0;
 double x[32], t[1];
-bool ok = NN_TrainOne(h, x, 32, t, 1, lr, mse);
+NN_TrainOne(h, x, 32, t, 1, 0.01, mse);
 
-3) Mini-batch trénink
+
+3) Mini-batch training
+
 int B=64, inLen=32, outLen=1;
 double xin[];  ArrayResize(xin, B*inLen);
 double tgt[];  ArrayResize(tgt, B*outLen);
 
-// naplň xin/tgt po řádcích...
 double mean_mse=0.0;
-bool ok = NN_TrainBatch(h, xin, B, inLen, tgt, outLen, 0.01, mean_mse);
+NN_TrainBatch(h, xin, B, inLen, tgt, outLen, 0.01, mean_mse);
 
-4) Čtení / nastavení vah (např. uložení do CSV)
-int layer = 0; int inSz=32, outSz=64;
-int Wlen = outSz*inSz, blen = outSz;
-double W[]; ArrayResize(W,Wlen);
-double b[]; ArrayResize(b,blen);
 
-NN_GetWeights(h, layer, W, Wlen, b, blen);
-// ... uložit / modifikovat ...
-NN_SetWeights(h, layer, W, Wlen, b, blen);
+4) Access weights
 
-5) Normalizace dat (doporučeno)
+int layer = 0;
+int inSz=32, outSz=64;
+double W[], b[];
+ArrayResize(W, outSz*inSz);
+ArrayResize(b, outSz);
 
-Standard score: z = (x - μ)/σ počítané jen z tréninkového řezu.
+NN_GetWeights(h, layer, W, ArraySize(W), b, ArraySize(b));
+// modify or save
+NN_SetWeights(h, layer, W, ArraySize(W), b, ArraySize(b));
 
-Pro regresi používej LINEAR na výstupu (ne sigmoid).
+Determinism, thread safety, performance
 
-Determinismus, thread-safety, výkon
+Seed RNG: call std::srand(fixed_seed) in host before first NN_Create.
 
-Seed RNG: před prvním NN_Create() dej std::srand(fixed_seed) (v hostiteli). Při /MD může mít host a DLL sdílenou CRT (determinismus obvykle OK).
+Thread safety: instance map is guarded by std::mutex. One network = one thread client (don’t call into the same handle concurrently).
 
-Thread-safety: tabulka instancí je chráněna std::mutex. Jedna síť = jeden vláknový klient (nevolej paralelně do stejného handle).
+Performance: train in batches, reuse buffers, normalize inputs.
 
-Výkon: trénuj v dávkách (batch wrappery), znovupoužívej buffery, normalizuj vstupy. Pro větší rychlost můžeš později přidat AVX/OpenMP (mimo scope této DLL).
+Limitations & roadmap
 
-Limity a roadmapa
+Current limitations
 
-Aktuální limity
+Only SGD optimizer (no momentum, Adam, …)
 
-Optimalizátor: pouze SGD (bez momentum, Adam…).
+TrainBatch = sequential calls to TrainOne (no vectorization)
 
-TrainBatch je sekvenční volání TrainOne (bez skutečné vektorové akcelerace).
+No built-in model serialization (use Get/SetWeights)
 
-Chybí vestavěná serializace modelu (řeš přes Get/SetWeights).
+Planned
 
-Plán
+Save/load model directly in DLL
 
-Serializace modelu (save/load) přímo v DLL.
+Adam / RMSProp, true mini-batch gradient accumulation
 
-Adam / RMSProp a mini-batch s akumulovaným gradientem.
+Optional layers (Conv1D, pooling), topology query API
 
-Volitelné vrstvy (Conv1D, pooling) a info API o topologii.
+Windows icon & metadata
 
-Ikona a metadata ve Windows
+Add /res/NNMQL5.rc and /res/resource.h
 
-Chceš, aby DLL měla vlastní ikonu a informace ve vlastnostech souboru:
+Include an .ico file and VERSIONINFO block (product, version, description).
 
-Přidej res/NNMQL5.rc a res/resource.h, importuj BPNDLL.ico.
+Windows Explorer can display DLL icon & version.
 
-NNMQL5.rc může obsahovat i VERSIONINFO blok (produkt, verze, popis).
+License
 
-Zástupce ve Windows může používat ikonu přímo z NNMQL5.dll (Vlastnosti → Změnit ikonu…).
+MIT-like spirit — use freely, but please keep attribution.
+For GitHub, include a LICENSE file (MIT template) with explicit attribution note.
 
-Licence
+Author & contact
 
-MIT-like spirit – používejte svobodně, prosíme o uvedení autorství.
+Author: Tomáš Bělák
 
-Doporučení pro GitHub: přidejte soubor LICENSE s MIT licencí a do něj větu o požadované atribuci (attribution).
-Příklad: „Permission is hereby granted… Attribution is required: please keep the author’s name in derived works.“
+Website: https://remind.cz
 
-Autor a kontakt
-
-Autor: Tomáš Bělák
-Web: https://remind.cz
-
-Článek: https://remind.cz/neural-networks-in-mql5/
+Article: https://remind.cz/neural-networks-in-mql5/
