@@ -1,4 +1,4 @@
-## Input Parameters — Precise Definitions
+## Input Parameters — Precise Definitions for RemindBPN_EA.mq5
 
 ### Data & Topology
 
