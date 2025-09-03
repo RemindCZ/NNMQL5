@@ -2,6 +2,8 @@
   <img src="Logo.png" alt="NNMQL5 Logo" width="200"/>
 </p>
 # NNMQL5 — Lightweight Neural Network DLL for MetaTrader 5 (x64, MSVC)
+[![Watch demo]([path/to/thumbnail.png)](https://github.dev/RemindCZ/NNMQL5/blob/master/delete%20BPNNN.png)]()
+
 
 A lightweight, dependency-free C++ DLL that brings **dense multilayer perceptrons (MLP)** and **batch training wrappers** directly into **MQL5**.  
 Ideal for time-series analysis and custom indicator prototyping — no Python runtime or external frameworks required.
