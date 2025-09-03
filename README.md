@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="BPNNN.png" alt="NNMQL5 Logo" width="200"/>
+  <img src="Logo.png" alt="NNMQL5 Logo" width="200"/>
 </p>
 # NNMQL5 — Lightweight Neural Network DLL for MetaTrader 5 (x64, MSVC)
 
