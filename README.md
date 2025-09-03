@@ -1,9 +1,4 @@
 <p align="center">
-  <img src="Logo.png" alt="NNMQL5 Logo" width="200"/>
-</p>
-# NNMQL5 — Lightweight Neural Network DLL for MetaTrader 5 (x64, MSVC)
-
-<p align="center">
   <a href="https://github.com/RemindCZ/NNMQL5/raw/master/NNMQL5/2025-08-20%2017-09-55.mp4">
     <img src="Logo.png" alt="NNMQL5 Logo" width="200"/>
   </a>
